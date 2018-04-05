@@ -1,6 +1,7 @@
 from collections import deque
 import math
 import pdb, traceback, sys
+import matplotlib.pyplot as plt
 
 # @TODO: write a function to read a csv file of chunks. Every chunk will be converted to a Chunk object,
 # and all the Chunk objects will be wrapped into a Buffer Object.
@@ -54,6 +55,7 @@ class Chunk:
         self.sentTime = sentTime # This is set when the packet is sent to the server
 
     def setCounter(self, counter):
+        # Indicating which segment this chunk belongs to
         self.counter = counter
 
 class Buffer:
@@ -295,7 +297,17 @@ class Plotter:
     ie. video quality over time for archival video, viewer joins streaming after k_1 sec,
     after k_2 sec... and immediate viewer
     '''
-    def plot(self, outputBuffer ,joinTime):
+    def __init__(self, outputBuffer, latency):
+        '''
+        Initialize the plotter
+        :param outputBuffer: Stream.outputBuffer
+        '''
+        self.outputBuffer = outputBuffer
+        self.latency = latency
+        # Step 1 sort the chunks according to Chunk.counter
+        # For live user start right after time defined by Latency
+    def plotLiveUser(self):
+
         return
 
 if __name__ == "__main__":
