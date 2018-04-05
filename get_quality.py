@@ -76,6 +76,8 @@ def main():
         current_segments = []
         for segment, quality in enumerate(qualities):
             filename = os.path.join(path, SEGMENT.format(segment, layer))
+
+            # Size in Bytes
             size = os.stat(filename).st_size
             current_segments.append(Segment(
                 layer=layer, size=size, quality=quality))
