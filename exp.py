@@ -146,7 +146,7 @@ class Stream:
 
 
     def run(self):
-        # the starting period, where self.latency seconds of video will be transmitted to the server
+        # the starting period, where self.latency seconds of video will be added to the stream buffer
         self.streamBuffer.addStreamChunks(self.streamChunks, self.latencyWinSize, self.chunkCount)
         #pdb.set_trace()
 
@@ -170,6 +170,8 @@ class Stream:
         '''
         startTime = self.timeCounter
         currBWIdx = int(self.timeCounter/self.bwList.unitTime)
+        # if currBWIdx > 500:
+            # pdb.set_trace()
         timeLeft = (currBWIdx+1) * self.bwList.unitTime - self.timeCounter
         currBW = self.bwList[currBWIdx]
         size = chunk.size
@@ -189,7 +191,7 @@ class Stream:
                 # if stream chuncks is not empty
                 timeElapsed = self.timeCounter - startTime
                 sliceNum = int(timeElapsed/self.chunkLen)
-                if len(self.streamChunks[0]) > 0:
+                if not self.streamChunks.empty():
                     sliceNum = min(sliceNum, len(streamChunks[0]))
                     self.streamBuffer.addStreamChunks(self.streamChunks,sliceNum, self.chunkCount)
                     self.chunkCount += sliceNum
