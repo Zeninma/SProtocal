@@ -18,7 +18,7 @@ class BandWidth:
     def __init__(self, unit):
         '''
 
-        :param unit: number of seconds of content each Chunk in the bandWidthQueue contains
+        :param unit: number of seconds each element represents
         '''
         self.unitTime = unit
 
@@ -26,11 +26,12 @@ class Chunk:
     '''
     Chunk -- represents a chunk of video with fixed length
     '''
-    size = 0
-    layer = 0
-    timeLen = 0.0
-    birthTime = 0.0 # This is the timestamp when this chunck is added to the streamBuffer
+    counter = 0 # indicate which round the chunk is added to the stream.streamBuffer
+    size = 0 # the number of bytes of the content
+    layer = 0 # which layer does this chunk belong to
+    timeLen = 0.0 # time length for each content
     sentTime = 0.0 # This is set when the packet is sent to the server
+
     def __init__(self, newSize, newLayer, newQuality, newTimeLen):
         '''
 
@@ -48,8 +49,8 @@ class Chunk:
     def setSent(self, sentTime):
         self.sentTime = sentTime
 
-    def setBirth(self, birthTime):
-        self.birthTime = birthTime
+    def setCounter(self, counter):
+        self.counter = counter
 
 class Buffer:
     '''
@@ -77,7 +78,8 @@ class Buffer:
         totalSliceNum = timeElapse/streamChunks[0][0].timeLen
         for sliceNum in range(totalSliceNum):
             for layer in streamChunks.layerNum:
-                self.buffer[layer].append(streamChunks[layer].popLeft())
+                newChunk = streamChunks[layer].popLeft()
+                self.buffer[layer].append(newChunk)
 
     def empty(self):
         result = True
@@ -94,6 +96,7 @@ class Stream:
     latency = 0.0
     chunkGenTime = 0.0
     timeCounter = 0.0
+    chunkCount = 0 # Indicating which round the chunk at the head of streamBuffer is added
 
     def __init__(self, numLayer, latency, streamChunks, bwList, algParam):
        '''
@@ -147,7 +150,7 @@ class Stream:
         currBW = self.bwList[currBWIdx]
         size = chunk.size
         while True:
-            if size - currBW * self.bwList.unitTime > 0:
+            if size - currBW * self.bwList.unitTime > 0: # determine whether to update current bandwidth
                 currBWIdx += 1
                 currBW = self.bwList[currBWIdx]
                 size -= currBW * self.bwList.unitTime
@@ -193,8 +196,8 @@ class Stream:
         targetBirth = math.floor((self.timeCounter - self.latency)/self.chunkLen) * self.chunkLen
         currLayer = self.streamBuffer[layerNum]
         searchRange = int(self.latency/self.chunkLen)
-        for i in range(searchRange):
-           idx =
+        #for i in range(searchRange):
+        #   idx =
 
 class Plotter:
     '''
