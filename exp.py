@@ -20,7 +20,7 @@ class BandWidth:
 
         :param unit: number of seconds each element represents
         '''
-        self.unitTime = unit
+        self.unitTime = float(unit)
         self.bandWidthQueue = deque(bwList)
 
     def __getitem__(self, index):
@@ -112,6 +112,7 @@ class Stream:
     timeCounter = 0.0
     chunkCount = 0 # Indicating which round the chunk at the head of streamBuffer is added
 
+
     def __init__(self, numLayer, latency, streamChunks, bwList, algParam):
         '''
 
@@ -149,7 +150,7 @@ class Stream:
         self.streamBuffer.addStreamChunks(self.streamChunks, self.latencyWinSize, self.chunkCount)
         #pdb.set_trace()
 
-        while len(self.streamChunks[0]) != 0 or not self.streamBuffer.empty():
+        while not self.streamChunks.empty() or not self.streamBuffer.empty():
             if not self.streamBuffer.empty():
                 currChunk = self.getNextChunk()
                 self.send(currChunk)
@@ -168,15 +169,18 @@ class Stream:
         :return:
         '''
         startTime = self.timeCounter
-        currBWIdx = int(self.timeCounter/self.chunkLen)
+        currBWIdx = int(self.timeCounter/self.bwList.unitTime)
+        timeLeft = (currBWIdx+1) * self.bwList.unitTime - self.timeCounter
         currBW = self.bwList[currBWIdx]
         size = chunk.size
         while True:
-            if size - currBW * self.bwList.unitTime > 0: # determine whether to update current bandwidth
+            if size - currBW * timeLeft > 0: # determine whether to update current bandwidth
+                size -= currBW * timeLeft
+                self.timeCounter += timeLeft
                 currBWIdx += 1
+                print currBWIdx
                 currBW = self.bwList[currBWIdx]
-                size -= currBW * self.bwList.unitTime
-                self.timeCounter += self.bwList.unitTime
+                timeLeft = self.bwList.unitTime
             else:
                 self.timeCounter += size*1.0/currBW
                 chunk.setSent(self.timeCounter)
@@ -190,7 +194,6 @@ class Stream:
                     self.streamBuffer.addStreamChunks(self.streamChunks,sliceNum, self.chunkCount)
                     self.chunkCount += sliceNum
                 return
-
 
     def getNextChunk(self):
         '''
@@ -284,7 +287,7 @@ if __name__ == "__main__":
         streamChunks.addChunk(Chunk(layer1Size, 1, (layer0Size + layer1Size) / 2, 2)) # layer 1
         streamChunks.addChunk(Chunk(layer2Size, 2, (layer0Size + layer1Size + layer2Size)/ 2, 2)) # layer 2
 
-    bandWidths = BandWidth(1, [50000*100*2] * 100000)
+    bandWidths = BandWidth(1.0, [50000*1000*2] * 1000)
 
     #pdb.set_trace()
     stream = Stream(3, 6, streamChunks, bandWidths, None)
