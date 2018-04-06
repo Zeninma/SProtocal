@@ -22,7 +22,7 @@ NUM_LAYERS = 4
 IGNORE_LINE_NAMES = {"Global:", "Min:"}
 
 # Did not work with pickle
-Segment = namedtuple("Segment", ["layer", "size", "quality"])
+Segment = namedtuple("Segment", ["time", "layer", "size", "quality"])
 
 def avg(nums):
     return sum(nums) / len(nums)
@@ -74,13 +74,13 @@ def main():
     for layer in range(NUM_LAYERS):
         qualities = get_qualities(layer)
         current_segments = []
-        for segment, quality in enumerate(qualities):
-            filename = os.path.join(path, SEGMENT.format(segment, layer))
+        for time, quality in enumerate(qualities):
+            filename = os.path.join(path, SEGMENT.format(time, layer))
 
             # Size in Bytes
             size = os.stat(filename).st_size
             current_segments.append(Segment(
-                layer=layer, size=size, quality=quality))
+                layer=layer, size=size, quality=quality, time=time))
         segments.append(current_segments)
     pickle.dump(segments, open('segments.p', 'wb'))
 
