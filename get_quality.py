@@ -21,7 +21,6 @@ FRAMES_IN_SEG = FPS * SEG_SECONDS
 NUM_LAYERS = 4
 IGNORE_LINE_NAMES = {"Global:", "Min:"}
 
-# Did not work with pickle
 Segment = namedtuple("Segment", ["time", "layer", "size", "quality"])
 
 def avg(nums):

@@ -89,7 +89,8 @@ class Allocator:
 
 
 def get_best_received_segment(received_times, segments, frame, timestep):
-    for layer in range(len(segments), 0, -1):
+    """Find the highest layer that was received at or before timestep"""
+    for layer in range(len(segments)-1, -1, -1):
         if received_times[layer][frame] <= timestep:
             return segments[layer][frame]
     return None
@@ -98,13 +99,17 @@ def get_best_received_segment(received_times, segments, frame, timestep):
 def average_quals(received_times, segments, join_time):
     total_psnr = 0
     total_ssim = 0
-    for frame in range(len(segments[0])):
+
+    num_frames = len(segments[0])
+    for frame in range(num_frames):
         timestep = join_time + frame
         best_received_segment = get_best_received_segment(
             received_times, segments, frame, timestep)
         if best_received_segment is not None:
-            total_psnr += best_received_segment.psnr
-            total_ssim += best_received_segment.ssim
+            total_psnr += best_received_segment.quality.psnr
+            total_ssim += best_received_segment.quality.ssim
+
+    return (total_psnr / num_frames, total_ssim / num_frames)
             
             
 def main():
@@ -114,6 +119,7 @@ def main():
     allocator = Allocator(alphas, betas, segments, DELAY_WINDOW, BANDWIDTH)
     allocator.run_simulation()
     print(allocator.received_times[0][0])
+    print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 99999))
 
 
 if __name__ == '__main__':
