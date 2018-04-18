@@ -1,7 +1,10 @@
 from heapq import heappush, heappop
-import pickle
 from get_quality import Segment
 from get_quality import Quality
+import pickle
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 DELAY_WINDOW = 4
@@ -17,12 +20,16 @@ class Allocator:
         self.delay_window = delay_window
         self.current_time = 0
         self.bandwidth = bandwidth
+
+        # indexed as [num_segmenmt][layer]
         self.received_times = [[None for segment in layer]
                                for layer in segments]
+
         self.buffer = set()
         self.remainder_bandwidth = 0
         self.overflow_segment = None
         self.heap = None
+        self.transmitted_in_timestep = 0
 
     def value(self, block_time, layer):
         size = self.segments[layer][block_time].size
@@ -43,47 +50,67 @@ class Allocator:
         
     def write_buffer_to_heap(self):
         """Clear self.heap and write the contents of self.buffer to self.heap"""
+        # This program could be made more efficient if we found a way to re-use part of
+        # the heap. Unfortunately this is difficult because segment values change
+
         self.heap = []
         for segment in self.buffer:
             heappush(self.heap,
                      (-self.value(segment.time, segment.layer),
                       segment))
-    
+
+    def send_leftover_segment(self):
+        """We want to send a leftover segment from the last timestep if there was one.
+        
+        If there is a leftover segment and enough bandwidth to send all of it, we will.
+        If there is only enough bandwidth to send part of it, we will send as much as
+        we can."""
+
+        if self.remainder_bandwidth > self.bandwidth:
+            logging.info("Using all bandwidth for timestep to send part of overflow "
+                         "segment")
+            self.remainder_bandwidth -= self.bandwidth
+            self.transmitted_in_timestep = self.bandwidth
+                
+        elif self.remainder_bandwidth > 0:
+            logging.info("Completed sending overflow segment")
+            self.transmitted_in_timestep = self.remainder_bandwidth
+            self.remainder_bandwidth = 0
+                
+            self.write_time(self.overflow_segment)
+            self.overflow_segment = None
+
+    def send_segs_from_heap(self):
+        while self.transmitted_in_timestep < self.bandwidth and len(self.heap) > 0:
+            to_send = heappop(self.heap)[1]
+            self.buffer.remove(to_send)
+
+            bits_to_send = to_send.size * BITS_IN_BYTE
+            new_size = self.transmitted_in_timestep + bits_to_send
+
+            if new_size > self.bandwidth:
+                logging.info("Segment from layer %d and time %d too large to send at "
+                             "timestep %d. Storing.", to_send.layer, to_send.time,
+                             self.current_time)
+                self.remainder_bandwidth = new_size - self.bandwidth
+                self.overflow_segment = to_send
+                self.transmitted_in_timestep = self.bandwidth
+                    
+            else:
+                self.transmitted_in_timestep += new_size
+                self.write_time(to_send)
+            
     def run_simulation(self):
         while (self.current_time < len(self.segments[0]) or
                self.overflow_segment is not None or
                len(self.buffer) > 0):
+            logging.info("Simulation at timestep %d", self.current_time)
             self.write_segments_for_current_time()
             self.write_buffer_to_heap()
 
-            transmitted = 0
-            if self.remainder_bandwidth > self.bandwidth:
-                self.remainder_bandwidth -= self.bandwidth
-                transmitted = self.bandwidth
-                
-            elif self.remainder_bandwidth > 0:
-                transmitted = self.remainder_bandwidth
-                self.remainder_bandwidth = 0
-                
-                self.write_time(self.overflow_segment)
-                self.overflow_segment = None
-
-            while transmitted < self.bandwidth and len(self.heap) > 0:
-                to_send = heappop(self.heap)[1]
-                self.buffer.remove(to_send)
-
-                bits_to_send = to_send.size * BITS_IN_BYTE
-                new_size = transmitted + bits_to_send
-
-                if new_size > self.bandwidth:
-                    leftover_bandwidth = self.bandwidth - transmitted
-                    self.remainder_bandwidth = bits_to_send - leftover_bandwidth
-                    self.overflow_segment = to_send
-                    transmitted = self.bandwidth
-                    
-                else:
-                    transmitted += new_size
-                    self.write_time(to_send)
+            self.transmitted_in_timestep = 0
+            self.send_leftover_segment()
+            self.send_segs_from_heap()
             
             self.current_time += 1
 
