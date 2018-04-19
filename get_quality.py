@@ -1,9 +1,10 @@
 # THIS FILE REQUIRES PYTHON 3!
 # It will not work correctly with Python 2
-
+from common import avg
+from common import Segment
+from common import Quality
 import os
 import csv
-from collections import namedtuple
 import math
 import re
 import pickle
@@ -20,17 +21,6 @@ FRAMES_IN_SEG = FPS * SEG_SECONDS
 
 NUM_LAYERS = 4
 IGNORE_LINE_NAMES = {"Global:", "Min:"}
-
-Segment = namedtuple("Segment", ["time", "layer", "size", "quality"])
-
-def avg(nums):
-    return sum(nums) / len(nums)
-
-
-class Quality:
-    def __init__(self, psnrs, ssims):
-        self.psnr = avg(psnrs)
-        self.ssim = avg(ssims)
 
 
 def get_qualities(layer):

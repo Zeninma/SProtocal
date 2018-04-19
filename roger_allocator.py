@@ -1,6 +1,6 @@
 from heapq import heappush, heappop
-from get_quality import Segment
-from get_quality import Quality
+from common import Segment
+from common import Quality
 import pickle
 import logging
 
@@ -21,7 +21,8 @@ class Allocator:
         self.current_time = 0
         self.bandwidth = bandwidth
 
-        # indexed as [num_segmenmt][layer]
+        # indexed as [layer][timestep]
+        # TODO make all indexing consistent
         self.received_times = [[None for segment in layer]
                                for layer in segments]
 
