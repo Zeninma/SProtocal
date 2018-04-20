@@ -58,7 +58,7 @@ def get_qualities(layer):
 
         
 def main():
-    # indexed as [timestamp][layer]
+    # indexed as [layer][timestamp]
     segments = []
     path = os.path.join('data', 'segs')
     for layer in range(NUM_LAYERS):

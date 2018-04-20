@@ -146,7 +146,7 @@ def main():
     allocator = Allocator(alphas, betas, segments, DELAY_WINDOW, BANDWIDTH)
     allocator.run_simulation()
     print(allocator.received_times[0][0])
-    print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 99999))
+    print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 9999))
 
 
 if __name__ == '__main__':
