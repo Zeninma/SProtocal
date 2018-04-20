@@ -2,7 +2,7 @@ from common import Segment
 from roger_allocator import get_best_received_segment
 
 def test_get_best_received_segment():
-    received_times = [[10, 11, 12, 13]]
+    received_times = [[10], [11], [12], [13]]
     segments = [
         [Segment(10, 0, 30, 10)],
         [Segment(11, 1, 40, 15)],
@@ -15,5 +15,5 @@ def test_get_best_received_segment():
     assert (get_best_received_segment(
         received_times, segments, 0, 10) == segments[0][0])
     assert (get_best_received_segment(
-        received_times, segments, 0, 12) == segments[0][2])
+        received_times, segments, 0, 12) == segments[2][0])
 

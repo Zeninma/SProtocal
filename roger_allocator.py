@@ -21,8 +21,7 @@ class Allocator:
         self.current_time = 0
         self.bandwidth = bandwidth
 
-        # indexed as [layer][timestep]
-        # TODO make all indexing consistent
+        # indexed as [layer][timestamp]
         self.received_times = [[None for segment in layer]
                                for layer in segments]
 
