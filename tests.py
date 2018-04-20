@@ -50,8 +50,8 @@ def test_average_quals():
 
 
 def test_allocator():
-    alphas = [1, 1.1, 1.21, 1.31]
-    betas = [2, 4.2, 8.82, 18.522]
+    alphas = [1.31, 1.21, 1.1, 1]
+    betas = [18.522, 8.82, 4.2, 2]
     allocator = Allocator(alphas, betas, segments, 1, 79)
     allocator.run_simulation()
 

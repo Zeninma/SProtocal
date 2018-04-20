@@ -36,7 +36,9 @@ class Allocator:
         elapsed_time = self.current_time - block_time
         weight = (self.betas[layer] if elapsed_time < self.delay_window else
                   self.alphas[layer])
-        return elapsed_time * (1/size) * weight
+
+        # We add 1 to elapsed_time to handle the most current segment
+        return (elapsed_time+1) * (1/size) * weight
 
     def write_time(self, segment):
         layer = segment.layer
@@ -55,6 +57,7 @@ class Allocator:
 
         self.heap = []
         for segment in self.buffer:
+            # We use negative value to get a max-first heap
             heappush(self.heap,
                      (-self.value(segment.time, segment.layer),
                       segment))
