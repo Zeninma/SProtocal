@@ -54,6 +54,9 @@ def test_allocator():
     betas = [18.522, 8.82, 4.2, 2]
     allocator = Allocator(alphas, betas, segments, 1, 79)
     allocator.run_simulation()
+    quals = average_quals(allocator.received_times, segments, 100)
+    assert math.isclose(quals[0], 0.3505)
+    assert math.isclose(quals[1], 0.03505)
 
 test_allocator()
 
