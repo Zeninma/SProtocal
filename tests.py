@@ -58,5 +58,4 @@ def test_allocator():
     assert math.isclose(quals[0], 0.3505)
     assert math.isclose(quals[1], 0.03505)
 
-test_allocator()
 
