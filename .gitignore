@@ -1,0 +1,4 @@
+__pycache__/
+data/segs/*
+*.pyc
+.pytest_cache/
