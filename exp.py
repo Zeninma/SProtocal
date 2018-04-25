@@ -100,7 +100,6 @@ class Buffer:
 
     def addStreamChunks(self, streamChunks, totalSliceNum, chunkCount):
         '''
-
         :param streamChunks - the buffer contains all the chunks that will be produced by video encoder
         :param timeElapse - number of seconds passed since the last addStreamChunks happened
         :return: True if the StreamChunks is empty Flase otherwise
@@ -140,11 +139,6 @@ class Stream:
     '''
     Stream - simulate the stream process
     '''
-    numLayer = 0
-    latency = 0.0
-    timeCounter = 0.0
-
-
     def __init__(self, numLayer, latency, streamChunks, bwList, algParam):
         '''
 
@@ -154,6 +148,7 @@ class Stream:
         :param bwList - The bandwidth for uploading
         :param algParam - a dictionary for algorithm's parameters
         '''
+        self.timeCounter = 0.0
         self.numLayer = numLayer
         self.latency = latency
         self.streamChunks = streamChunks
@@ -174,32 +169,28 @@ class Stream:
         Initialize the coefficient
         :return:
         '''
-        self.headsCo = [80,40,20,10]
-        self.tailsCo = [8,4,2,1]
+        self.headsCo = [90.0,30.0,10.0,1.0]
+        self.tailsCo = [9.0,3.0,1.0,0.1]
 
 
     def run(self):
         # the starting period, where self.latency seconds of video will be added to the stream buffer
-        self.streamBuffer.addStreamChunks(self.streamChunks, self.latencyWinSize, self.chunkCount)
-        self.chunkCount += self.latencyWinSize
+        # self.streamBuffer.addStreamChunks(self.streamChunks, self.latencyWinSize, self.chunkCount)
+        # self.chunkCount += self.latencyWinSize
         # Debug Purpose
-        errorhit = 0
         prevTime = self.timeCounter
-
         while not self.streamChunks.empty() or not self.streamBuffer.empty():
             if not self.streamBuffer.empty():
                 currChunk = self.getNextChunk()
                 self.send(currChunk)
+                print("chunk sent at {0: .2f} at layer {1: =5} lowest len {2: =5}".\
+                      format(self.timeCounter, currChunk.layer, len(self.streamBuffer[0])))
                 sliceNum = int((self.timeCounter - prevTime) / self.chunkLen)
                 if sliceNum > 0:
-                    # assert(sliceNum == 1)
                     self.streamBuffer.addStreamChunks(self.streamChunks, sliceNum, self.chunkCount)
                     self.chunkCount += sliceNum
                     prevTime = self.timeCounter
-
-
             else:
-                errorhit += 1
                 # increment timer forward and add new chunks into stream buffer
                 self.timeCounter = (math.floor(self.timeCounter/self.chunkLen)+1)*self.chunkLen
                 self.streamBuffer.addStreamChunks(self.streamChunks, 1, self.chunkCount)
@@ -215,8 +206,7 @@ class Stream:
         :return:
         '''
         currBWIdx = int(self.timeCounter/self.bwList.unitTime)
-        # if currBWIdx > 500:
-            # pdb.set_trace()
+
         timeLeft = (currBWIdx+1) * self.bwList.unitTime - self.timeCounter
         currBW = self.bwList[currBWIdx]
         size = chunk.size
@@ -240,10 +230,13 @@ class Stream:
         Use our algorithm to determine the next chunk to send
         :return: The chunk to send next
         '''
-        for layer in range(self.numLayer):
-            exist, result = self.latencyWinFirst(layer)
-            if exist:
-                return result
+        # for layer in range(self.numLayer):
+        #     exist, result = self.latencyWinFirst(layer)
+        #     if exist:
+        #         return result
+        exist, result = self.latencyWinFirst(0)
+        if exist:
+            return result
 
         heads = []
         tails = []
@@ -279,7 +272,7 @@ class Stream:
         idx = len(currLayer) - 1
         while idx > 0 and currLayer[idx].counter > self.chunkCount - self.latencyWinSize + 1:
             idx -= 1
-        val = self.headsCo[layerNum]/currLayer[idx].size
+        val = (self.chunkCount - currLayer[0].counter)*self.headsCo[layerNum]/currLayer[idx].size
         return (layerNum, idx, val)
 
     def getTail(self,layerNum):
@@ -340,7 +333,6 @@ class Plotter:
             currList = list(outputBuffer[layer])
             currList.sort(key = lambda c: c.counter)
             layerList.append(currList)
-            pdb.set_trace()
 
         self.videoLen = layerLen # number of segments per layer
         self.sortedSegs = layerList
@@ -391,10 +383,7 @@ class Plotter:
         pdb.set_trace()
         return avg_psnr, avg_ssim
 
-
-
     def plotLiveUser(self):
-
         return
 
 
@@ -409,8 +398,19 @@ def main():
 
     pdb.set_trace()
 
+
+def test():
+    bandWidths = BandWidth(1.0, [3.0]*10000)
+    streamChunks = Buffer(3)
+    for i in range(100):
+        streamChunks.addChunk(Chunk(1.0, 0, 1.0, 1.0))
+        streamChunks.addChunk(Chunk(2.0, 1, 1.0, 1.0))
+        streamChunks.addChunk(Chunk(2.0, 2, 1.0, 1.0))
+    stream = Stream(3,2,streamChunks,bandWidths, None)
+    stream.run()
+
 if __name__ == "__main__":
-    main()
+    test()
     # print("testing")
     # streamChunks = Buffer(3)
     # totalLayer = 3
