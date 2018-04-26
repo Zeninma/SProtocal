@@ -1,7 +1,10 @@
+import numpy as np
+import pdb
 from common import Segment
 from common import Quality
 import pickle
 import logging
+import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.WARN)
 
 import roger_allocator
@@ -36,15 +39,32 @@ class Grapher:
 
         return (psnr, ssim)
 
+def plot(beta_val, alphas, psnrs, ssims, save = True):
+    fname= "beta_{b_val}.png".format(b_val= str(beta_val))
+    psnr_fig = plt.figure()
+    plt.subplot(2,1,1)
+    plt.title("beta = {b_val}".format(b_val = beta_val))
+    plt.ylabel('psnr')
+    plt.plot(alphas, psnrs,'o-')
+    plt.subplot(2,1,2)
+    plt.xlabel('alpha')
+    plt.ylabel('ssim')
+    plt.plot(alphas, ssims,'o-')
+    plt.savefig(fname)
+    plt.cla()
+    plt.close()
+
 def main():
-    alphas = [1.1, 2, 10, 100]
-    beta = 2
+    alphas = np.arange(1.1, 100, 5)
+    betas = [b for b in range(5)]
     def generator(num, value):
         return value ** (num + 1)
     segments = pickle.load(open('segments.p', 'rb'))
 
-    grapher = Grapher(alphas, beta, generator, segments, CONNECTION_TIME)
-    print(grapher.get_results())
+    for beta in betas:
+        grapher = Grapher(alphas, beta, generator, segments, CONNECTION_TIME)
+        result = grapher.get_results()
+        plot(beta ,alphas, result[0], result[1])
 
 if __name__ == "__main__":
     main()
