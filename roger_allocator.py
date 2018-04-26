@@ -151,11 +151,11 @@ def average_quals(received_times, segments, join_time):
 def main():
     alphas = [80, 40, 20, 10]
     betas = [8, 4, 2, 1]
-    segments = pickle.load(open('segments.p', 'rb'))
+    segments = pickle.load(open('large_variation_segments.p', 'rb'))
     allocator = Allocator(alphas, betas, segments, DELAY_WINDOW, BANDWIDTH)
     allocator.run_simulation()
     print(allocator.received_times[0][0])
-    print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 9999))
+    print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 30))
 
 
 if __name__ == '__main__':
