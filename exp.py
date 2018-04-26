@@ -21,7 +21,7 @@ def loadSegments(path = SEGPATH, layerNum = LAYERNUM):
     for layer in range(LAYERNUM):
         layerSegs = segments[layer]
         for seg in layerSegs:
-            newChunk = Chunk(seg.size,seg.layer,seg.quality, DEFAULTLEN)
+            newChunk = Chunk(seg.size*8.0,seg.layer,seg.quality, DEFAULTLEN)
             streamChunks.addChunk(newChunk)
 
     return streamChunks
@@ -169,7 +169,7 @@ class Stream:
         Initialize the coefficient
         :return:
         '''
-        self.headsCo = [90.0,30.0,10.0,1.0]
+        self.headsCo = [360.0,60.0,10.0,1.6]
         self.tailsCo = [9.0,3.0,1.0,0.1]
 
 
@@ -178,11 +178,15 @@ class Stream:
         # self.streamBuffer.addStreamChunks(self.streamChunks, self.latencyWinSize, self.chunkCount)
         # self.chunkCount += self.latencyWinSize
         # Debug Purpose
+        chunk_sent = 0
         prevTime = self.timeCounter
         while not self.streamChunks.empty() or not self.streamBuffer.empty():
             if not self.streamBuffer.empty():
+                if chunk_sent == 114:
+                    pdb.set_trace()
                 currChunk = self.getNextChunk()
                 self.send(currChunk)
+                chunk_sent += 1
                 print("chunk sent at {0: .2f} at layer {1: =5} lowest len {2: =5}".\
                       format(self.timeCounter, currChunk.layer, len(self.streamBuffer[0])))
                 sliceNum = int((self.timeCounter - prevTime) / self.chunkLen)
@@ -272,7 +276,8 @@ class Stream:
         idx = len(currLayer) - 1
         while idx > 0 and currLayer[idx].counter > self.chunkCount - self.latencyWinSize + 1:
             idx -= 1
-        val = (self.chunkCount - currLayer[0].counter)*self.headsCo[layerNum]/currLayer[idx].size
+        # val = (self.chunkCount - currLayer[0].counter)*self.chunkLen*self.headsCo[layerNum]/currLayer[idx].size
+        val = (self.chunkCount - currLayer[0].counter) * self.chunkLen * self.headsCo[layerNum]
         return (layerNum, idx, val)
 
     def getTail(self,layerNum):
@@ -281,7 +286,8 @@ class Stream:
             return (layerNum, 0, -1)
             # @TODO: Here use negative num to indicate the current layer is empty, might need
             # Might need better way to indicate this when the value can be negative
-        val = (self.chunkCount - currLayer[0].counter) * self.tailsCo[layerNum]/currLayer[0].size
+        # val = (self.chunkCount - currLayer[0].counter)*self.chunkLen * self.tailsCo[layerNum]/currLayer[0].size
+        val = (self.chunkCount - currLayer[0].counter) * self.chunkLen * self.tailsCo[layerNum]
         return (layerNum, 0, val)
 
 
