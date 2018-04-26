@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pdb
 from common import Segment
@@ -57,12 +58,14 @@ def plot(beta_val, alphas, psnrs, ssims, save = True):
 def main():
     alphas = np.arange(1.1, 100, 5)
     betas = [b for b in range(5)]
-    def generator(num, value):
+    def exponent(num, value):
         return value ** (num + 1)
+    def multiply(num, value):
+        return value * (num + 1)
     segments = pickle.load(open('segments.p', 'rb'))
 
     for beta in betas:
-        grapher = Grapher(alphas, beta, generator, segments, CONNECTION_TIME)
+        grapher = Grapher(alphas, beta, multiply, segments, CONNECTION_TIME)
         result = grapher.get_results()
         plot(beta ,alphas, result[0], result[1])
 
