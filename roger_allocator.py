@@ -32,6 +32,9 @@ class Allocator:
         self.transmitted_in_timestep = 0
 
     def value(self, block_time, layer):
+        if block_time == self.current_time - self.delay_window and layer == 0:
+            return float('inf')
+        
         size = self.segments[layer][block_time].size
         elapsed_time = self.current_time - block_time
         weight = (self.betas[layer] if elapsed_time < self.delay_window else
@@ -56,11 +59,14 @@ class Allocator:
         # the heap. Unfortunately this is difficult because segment values change
 
         self.heap = []
+        num_lowest_layer = 0
         for segment in self.buffer:
             # We use negative value to get a max-first heap
             heappush(self.heap,
                      (-self.value(segment.time, segment.layer),
                       segment))
+            if segment.layer == 0:
+                num_lowest_layer += 1
 
     def send_leftover_segment(self):
         """We want to send a leftover segment from the last timestep if there was one.

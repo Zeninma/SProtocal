@@ -59,3 +59,15 @@ def test_allocator():
     assert math.isclose(quals[1], 0.03505)
 
 
+# def test_small_example():
+#     bandwidth = 3 * 8
+#     segments = [
+#         [Segment(i, 0, 1, 1) for i in range(100)],
+#         [Segment(i, 1, 2, 1) for i in range(100)],
+#         [Segment(i, 2, 2, 1) for i in range(100)],
+#     ]
+#     alphas = [360, 60, 10, 1.6]
+#     betas = [9, 3, 1, 0.1]
+#     allocator = Allocator(alphas, betas, segments, 1, bandwidth)
+#     allocator.run_simulation()
+#     assert allocator.received_times == None
