@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import pdb
 
-def plotp(beta_val, alphas, psnrs, ssims, save = True):
-    pdb.set_trace()
+def plot(beta_val, alphas, psnrs, ssims, save = True):
     fname= "beta_{b_val}.png".format(b_val= str(beta_val))
     psnr_fig = plt.figure()
     plt.subplot(2,1,1)
