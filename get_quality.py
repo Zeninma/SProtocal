@@ -9,8 +9,13 @@ import math
 import re
 import pickle
 
-FILENAME = 'I_BBB_1080p_3L{}.txt'
-SEGMENT = 'BBB-I-1080p.seg{}-L{}.svc'
+# FILENAME = 'I_BBB_1080p_3L{}.txt'
+# SEGMENT = 'BBB-I-1080p.seg{}-L{}.svc'
+# FOLDER_NAME = 'smaller_variation'
+
+FILENAME = 'III_TOS_1L{}_up_1080p.txt'
+SEGMENT = 'TOS-III.seg{}-L{}.svc'
+FOLDER_NAME = 'larger_variation'
 
 PSNR = 4
 SSIM = 9
@@ -27,7 +32,7 @@ def get_qualities(layer):
     qualities = []
 
     with open(os.path.join(
-            'data', 'quality', FILENAME.format(layer))) as f:
+            'data', FOLDER_NAME, 'quality', FILENAME.format(layer))) as f:
         psnrs = []
         ssims = []
 
@@ -37,7 +42,9 @@ def get_qualities(layer):
         for row in reader:
             if row[0] == "Avg:":
                 if not math.isclose(float(row[PSNR]), avg(psnrs),
-                                    abs_tol=1e-05):
+                                    abs_tol=0.01):
+                #                     abs_tol=1e-05):
+                #     print(float(row[PSNR]), avg(psnrs))
                     raise Exception("Wrong PSNR average for layer {}".format(
                         layer))
                 if not math.isclose(float(row[SSIM]), avg(ssims),
@@ -60,7 +67,7 @@ def get_qualities(layer):
 def main():
     # indexed as [layer][timestamp]
     segments = []
-    path = os.path.join('data', 'segs')
+    path = os.path.join('data', FOLDER_NAME, 'segs')
     for layer in range(NUM_LAYERS):
         qualities = get_qualities(layer)
         current_segments = []
@@ -72,7 +79,7 @@ def main():
             current_segments.append(Segment(
                 layer=layer, size=size, quality=quality, time=time))
         segments.append(current_segments)
-    pickle.dump(segments, open('segments.p', 'wb'))
+    pickle.dump(segments, open('large_variation_segments.p', 'wb'))
 
 if __name__ == "__main__":
     main()

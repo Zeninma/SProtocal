@@ -12,8 +12,8 @@ import roger_allocator
 
 
 DELAY_WINDOW = 6
-BANDWIDTH = 20 * 10E5
-CONNECTION_TIME = 50
+BANDWIDTH = 4 * 10E5
+CONNECTION_TIME = 20
 
 
 class Grapher:
@@ -62,7 +62,7 @@ def main():
         return value ** (num + 1)
     def multiply(num, value):
         return value * (num + 1)
-    segments = pickle.load(open('segments.p', 'rb'))
+    segments = pickle.load(open('large_variation_segments.p', 'rb'))
 
     for beta in betas:
         grapher = Grapher(alphas, beta, multiply, segments, CONNECTION_TIME)
