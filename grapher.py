@@ -12,20 +12,18 @@ import roger_allocator
 
 
 DELAY_WINDOW = 6
-BANDWIDTH = 4 * 10E5
-CONNECTION_TIME = 20
+BANDWIDTH = 2 * 10E5
 
 
 class Grapher:
-    def __init__(self, alphas, beta, generator, segments, connection_time):
+    def __init__(self, alphas, beta, generator, segments):
         self.num_layers = len(segments)
         self.alphas = alphas
         self.betas = [generator(i, beta) for i in range(self.num_layers)]
         self.generator = generator
         self.segments = segments
-        self.connection_time = connection_time
 
-    def get_results(self):
+    def get_results(self, connection_time):
         psnr = []
         ssim = []
         for alpha in self.alphas:
@@ -34,7 +32,7 @@ class Grapher:
                 current_alphas, self.betas, self.segments, DELAY_WINDOW, BANDWIDTH)
             allocator.run_simulation()
             averages = roger_allocator.average_quals(
-                allocator.received_times, self.segments, self.connection_time)
+                allocator.received_times, self.segments, connection_time)
             psnr.append(averages[0])
             ssim.append(averages[1])
 
@@ -56,8 +54,9 @@ def plot(beta_val, alphas, psnrs, ssims, save = True):
     plt.close()
 
 def main():
-    alphas = np.arange(1.1, 100, 5)
+    alphas = np.arange(1.1, 10, 1)
     betas = [b for b in range(5)]
+<<<<<<< HEAD
     def exponent(num, value):
         return value ** (num + 1)
     def multiply(num, value):
@@ -67,6 +66,19 @@ def main():
     for beta in betas:
         grapher = Grapher(alphas, beta, multiply, segments, CONNECTION_TIME)
         result = grapher.get_results()
+=======
+
+    def exponent(num, value):
+        return value ** (num + 1)
+    def multiplication(num, value):
+        return value * (num + 1)
+
+    segments = pickle.load(open('large_variation_segments.p', 'rb'))
+
+    for beta in betas:
+        grapher = Grapher(alphas, beta, multiplication, segments)
+        result = grapher.get_results(2000)
+>>>>>>> 3ea295cf7efa8562a7ae00da77e0642bae226f10
         plot(beta ,alphas, result[0], result[1])
 
 if __name__ == "__main__":
