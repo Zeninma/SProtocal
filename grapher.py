@@ -56,17 +56,6 @@ def plot(beta_val, alphas, psnrs, ssims, save = True):
 def main():
     alphas = np.arange(1.1, 10, 1)
     betas = [b for b in range(5)]
-<<<<<<< HEAD
-    def exponent(num, value):
-        return value ** (num + 1)
-    def multiply(num, value):
-        return value * (num + 1)
-    segments = pickle.load(open('large_variation_segments.p', 'rb'))
-
-    for beta in betas:
-        grapher = Grapher(alphas, beta, multiply, segments, CONNECTION_TIME)
-        result = grapher.get_results()
-=======
 
     def exponent(num, value):
         return value ** (num + 1)
@@ -78,7 +67,6 @@ def main():
     for beta in betas:
         grapher = Grapher(alphas, beta, multiplication, segments)
         result = grapher.get_results(2000)
->>>>>>> 3ea295cf7efa8562a7ae00da77e0642bae226f10
         plot(beta ,alphas, result[0], result[1])
 
 if __name__ == "__main__":
