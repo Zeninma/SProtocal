@@ -4,12 +4,12 @@ from common import Quality
 import pickle
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARN)
 
 
 DELAY_WINDOW = 4
 BITS_IN_BYTE = 8
-BANDWIDTH = 10E5 # One Megabit
+BANDWIDTH = 2 * 10E5 # One Megabit
 
 
 class Allocator:
@@ -130,6 +130,9 @@ def found_lower(found_layer, frame, timestep, received_times):
     # really bad values of alpha and beta
     for layer in range(found_layer):
         if received_times[layer][frame] > timestep:
+            logging.warn(
+                "Received %d %d but not %d %d", found_layer,
+                frame, layer, frame)
             return False
     return True
 
@@ -166,7 +169,10 @@ def main():
     segments = pickle.load(open('large_variation_segments.p', 'rb'))
     allocator = Allocator(alphas, betas, segments, DELAY_WINDOW, BANDWIDTH)
     allocator.run_simulation()
-    print(allocator.received_times[0][0])
+
+    for layer in allocator.received_times:
+        print(*layer)
+    
     print(average_quals(allocator.received_times, segments, DELAY_WINDOW + 30))
 
 
