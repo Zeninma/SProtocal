@@ -25,7 +25,7 @@ class Grapher:
     def __init__(self, alphas, beta, generator, segments):
         self.num_layers = len(segments)
         self.alphas = alphas
-        self.betas = [generator(i, beta) for i in range(self.num_layers)]
+        self.betas = [generator(i, beta, self.num_layers) for i in range(self.num_layers)]
         self.generator = generator
         self.segments = segments
         self.layers_avg_quality = [] # average qualities for each layer
@@ -52,7 +52,7 @@ class Grapher:
     def get_results(self, connection_times, bandwidth = BANDWIDTH):
         result = [[[],[]] for i in range(len(connection_times))] # [[results for connection_time1],[results for connection_time2],...]
         for alpha in self.alphas:
-            current_alphas = [self.generator(i, alpha) for i in range(self.num_layers)]
+            current_alphas = [self.generator(i, alpha, self.num_layers) for i in range(self.num_layers)]
             allocator = roger_allocator.Allocator(
                 current_alphas, self.betas, self.segments, DELAY_WINDOW, bandwidth)
             allocator.run_simulation()
@@ -67,8 +67,22 @@ class Grapher:
     def search_results(self, alpha, k_val, generator, connection_times, bandwidth = BANDWIDTH):
         result = [] #[(psnr, ssim for conn_time_1), (psnr,ssim for conn_time_2)...]
         beta = alpha * k_val
-        alphas = [generator(i, alpha) for i in range(self.num_layers)]
-        betas = [generator(i, beta) for i in range(self.num_layers)]
+        alphas = [generator(i, alpha, self.num_layers) for i in range(self.num_layers)]
+        betas = [generator(i, beta, self.num_layers) for i in range(self.num_layers)]
+        allocator = roger_allocator.Allocator(
+                alphas, betas, self.segments, DELAY_WINDOW, bandwidth)
+        allocator.run_simulation()
+        for connection_time in connection_times:
+            averages = roger_allocator.average_quals(
+                allocator.received_times, self.segments, connection_time)
+            result.append((averages[0], averages[1])) # (psnr, ssim)
+        
+        return result
+
+    def search_resultsb(self, alpha, beta, generator, connection_times, bandwidth = BANDWIDTH):
+        result = [] #[(psnr, ssim for conn_time_1), (psnr,ssim for conn_time_2)...]
+        alphas = [generator(i, alpha, self.num_layers) for i in range(self.num_layers)]
+        betas = [generator(i, beta, self.num_layers) for i in range(self.num_layers)]
         allocator = roger_allocator.Allocator(
                 alphas, betas, self.segments, DELAY_WINDOW, bandwidth)
         allocator.run_simulation()
@@ -108,10 +122,10 @@ def plot(beta_val, alphas, psnrs, ssims, connection_time, alg_name,bandwidth = B
     plt.close()
 
 def main():
-    def exponent(num, value):
-        return value ** (num + 1)
-    def multiplication(num, value):
-        return value * (num + 1)
+    def exponent(num, value, num_layers):
+        return value ** (num_layers - num)
+    def multiplication(num, value, num_layers):
+        return value * (num_layers - num)
 
     # alphas = np.arange(1.1, 30.0, 3.0)
     # k_vals = np.arange(2.0,100.0, )

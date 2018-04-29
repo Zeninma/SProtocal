@@ -124,10 +124,22 @@ class Allocator:
             self.current_time += 1
 
 
+def found_lower(found_layer, frame, timestep, received_times):
+    # This is inefficient because it is run every time
+    # But we should only have to run it once unless we have
+    # really bad values of alpha and beta
+    for layer in range(found_layer):
+        if received_times[layer][frame] > timestep:
+            return False
+    return True
+
+            
 def get_best_received_segment(received_times, segments, frame, timestep):
     """Find the highest layer that was received at or before timestep"""
     for layer in range(len(segments)-1, -1, -1):
-        if received_times[layer][frame] <= timestep:
+        if (received_times[layer][frame] is not None and
+            received_times[layer][frame] <= timestep and
+            found_lower(layer, frame, timestep, received_times)):
             return segments[layer][frame]
     return None
 
