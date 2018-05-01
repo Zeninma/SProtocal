@@ -13,9 +13,13 @@ import pickle
 # SEGMENT = 'BBB-I-1080p.seg{}-L{}.svc'
 # FOLDER_NAME = 'smaller_variation'
 
-FILENAME = 'III_TOS_1L{}_up_1080p.txt'
-SEGMENT = 'TOS-III.seg{}-L{}.svc'
-FOLDER_NAME = 'larger_variation'
+FILENAME = 'III_ED_1L{}_up_1080p.txt'
+SEGMENT = 'ED-III.seg{}-L{}.svc'
+FOLDER_NAME = 'medium_variation'
+
+# FILENAME = 'III_TOS_1L{}_up_1080p.txt'
+# SEGMENT = 'TOS-III.seg{}-L{}.svc'
+# FOLDER_NAME = 'larger_variation'
 
 PSNR = 4
 SSIM = 9
@@ -79,7 +83,7 @@ def main():
             current_segments.append(Segment(
                 layer=layer, size=size, quality=quality, time=time))
         segments.append(current_segments)
-    pickle.dump(segments, open('large_variation_segments.p', 'wb'))
+    pickle.dump(segments, open('{}.p'.format(FOLDER_NAME), 'wb'))
 
 if __name__ == "__main__":
     main()
